@@ -6,24 +6,32 @@ const port = 3333;
 
 app.use(express.json());
 
-interface customersProps extends Array<{}> {
+interface customer {
   cpf: string
   name: string
   id: number
   statement: []
 }
 
-const customers = [] as unknown as customersProps;
+type customersProps = customer[]
+
+const customers = [] as customersProps;
 
 app.post('/account', (req, res) => {
   const { cpf, name } = req.body;
 
-  const id = uuidv4();
+  const customersAlreadyExists = customers.some(
+    (customer) => customer.cpf === cpf
+  );
+
+  if(customersAlreadyExists) {
+    return res.status(400).json({error: 'Customer already exist!'})
+  }
 
   customers.push({
     cpf,
     name,
-    id,
+    id: uuidv4(),
     statement: [],
   });
 
