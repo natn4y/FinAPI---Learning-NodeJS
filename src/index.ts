@@ -1,4 +1,4 @@
-import express from "express";
+import express, { NextFunction, Request, Response } from "express";
 const { v4: uuidv4 } = require('uuid');
 
 const app = express();
@@ -16,6 +16,24 @@ interface customer {
 type customersProps = customer[]
 
 const customers = [] as customersProps;
+
+// Middleware
+function verifyIfExistsAccountCPF(
+  req: Request & {customer?: customer},
+  res: Response,
+  next: NextFunction) {
+  const { cpf } = req.headers;
+
+  const customer = customers.find(customer => customer.cpf === cpf) as customer;
+
+  if(!customer) {
+    return res.json({ error: 'Customer not found' });
+  };
+
+  req.customer = customer;
+
+  return next();
+}
 
 app.post('/account', (req, res) => {
   const { cpf, name } = req.body;
@@ -38,16 +56,16 @@ app.post('/account', (req, res) => {
   return res.status(201).send();
 })
 
-app.post('/statement/:cpf', (req, res) => {
-  const { cpf } = req.params;
+//app.use(verifyIfExistsAccountCPF); // Uma forma de especificar que tudo que tiver abaixo dessa linha passará a usar esse Middleware
 
-  const customer = customers.find(customer => customer.cpf === cpf) as customer;
+// Passando o Middleware entre o path e a função callback, essa rota poderá usar Middleware especificado
+app.post(
+  '/statement',
+  verifyIfExistsAccountCPF, // here
+  (req: Request & {customer?: customer}, res) => {
+  const { customer } = req;
 
-  if(!customer) {
-    return res.json({ error: 'Customer not found' })
-  }
-
-  return res.json(customer.statement)
+  return res.json(customer?.statement);
 })
 
 app.listen(port, () => {
