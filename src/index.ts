@@ -149,6 +149,31 @@ app.post(
   }
 )
 
+app.put(
+  '/account',
+  verifyIfExistsAccountCPF,
+  (req: Request & {customer?: customer}, res) => {
+
+    const { name } = req.body;
+    const { customer } = req as {customer: customer}
+
+    customer.name = name;
+
+    return res.status(201).send()
+  }
+)
+
+app.get(
+  '/account',
+  verifyIfExistsAccountCPF,
+  (req: Request & {customer?: customer}, res) => {
+
+    const { customer } = req as {customer: customer}
+
+    return res.json(customer)
+  }
+)
+
 app.listen(port, () => {
   console.log(`[SERVER RUNNING]: listening on port: ${port}`);
 });
