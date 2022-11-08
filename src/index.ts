@@ -38,6 +38,18 @@ app.post('/account', (req, res) => {
   return res.status(201).send();
 })
 
+app.post('/statement/:cpf', (req, res) => {
+  const { cpf } = req.params;
+
+  const customer = customers.find(customer => customer.cpf === cpf) as customer;
+
+  if(!customer) {
+    return res.json({ error: 'Customer not found' })
+  }
+
+  return res.json(customer.statement)
+})
+
 app.listen(port, () => {
   console.log(`[SERVER RUNNING]: listening on port: ${port}`);
 });
