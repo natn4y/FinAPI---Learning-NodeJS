@@ -68,9 +68,9 @@ app.post(
   '/statement',
   verifyIfExistsAccountCPF, // here
   (req: Request & {customer?: customer}, res) => {
-  const { customer } = req;
+  const { customer } = req as {customer: customer};
 
-  return res.json(customer?.statement);
+  return res.json(customer.statement);
 })
 
 app.post(
