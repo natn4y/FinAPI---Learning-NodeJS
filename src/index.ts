@@ -10,7 +10,12 @@ interface customer {
   cpf: string
   name: string
   id: number
-  statement: []
+  statement: {
+    description: string
+    amount: number
+    created_at: Date
+    type: string
+  }[]
 }
 
 type customersProps = customer[]
@@ -66,6 +71,26 @@ app.post(
   const { customer } = req;
 
   return res.json(customer?.statement);
+})
+
+app.post(
+  '/deposit',
+  verifyIfExistsAccountCPF, // here
+  (req: Request & {customer?: customer}, res) => {
+  const { description, amount } = req.body;
+
+  const { customer } = req as {customer: customer};
+
+  const statementOperation = {
+    description,
+    amount,
+    created_at: new Date(),
+    type: "credit"
+  }
+
+  customer.statement.push(statementOperation);
+
+  return res.status(201).send();
 })
 
 app.listen(port, () => {
