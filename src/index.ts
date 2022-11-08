@@ -10,12 +10,19 @@ interface customer {
   cpf: string
   name: string
   id: number
-  statement: {
-    description: string
-    amount: number
-    created_at: Date
-    type: string
-  }[]
+  statement: customerStatements[]
+}
+
+type customerStatements = {
+  description?: string
+  amount: number
+  created_at: Date
+  type: string
+}
+
+interface withdraw {
+  description: string
+  amount: number
 }
 
 type customersProps = customer[]
@@ -39,6 +46,18 @@ function verifyIfExistsAccountCPF(
 
   return next();
 }
+
+function getBalance(statement: Array<customerStatements>) {
+  const balance: Number = statement.reduce((acc: number , operation:customerStatements) => {
+    if(operation.type === 'credit') {
+      return acc + operation.amount;
+    } else {
+      return acc - operation.amount;
+    }
+  }, 0);
+
+  return balance;
+};
 
 app.post('/account', (req, res) => {
   const { cpf, name } = req.body;
@@ -86,6 +105,27 @@ app.post(
     amount,
     created_at: new Date(),
     type: "credit"
+  }
+
+  customer.statement.push(statementOperation);
+
+  return res.status(201).send();
+})
+
+app.post('/withdraw', verifyIfExistsAccountCPF, (req: Request & {customer?: customer}, res) => {
+  const { amount } = req.body as withdraw;
+  const { customer } = req as {customer: customer}
+
+  const balance = getBalance(customer.statement)
+
+  if(balance < amount) {
+    return res.status(400).json({error: 'Insufficient funds!'})
+  }
+
+  const statementOperation = {
+    amount,
+    created_at: new Date(),
+    type: "debit",
   }
 
   customer.statement.push(statementOperation);
