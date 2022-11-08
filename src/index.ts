@@ -133,6 +133,22 @@ app.post('/withdraw', verifyIfExistsAccountCPF, (req: Request & {customer?: cust
   return res.status(201).send();
 })
 
+app.post(
+  '/statement/date',
+  verifyIfExistsAccountCPF,
+  (req: Request & {customer?: customer}, res) => {
+    const { customer } = req as {customer: customer};
+
+    const { date } = req.query;
+
+    const dateFormat = new Date(date + ' 00:00'); // 00:00 para buscar a data independente do horário, lembre de dar um espaço ao somar date
+
+    const statement = customer.statement.filter((statement) => statement.created_at.toDateString() === new Date (dateFormat).toDateString());
+
+    return res.json(statement);
+  }
+)
+
 app.listen(port, () => {
   console.log(`[SERVER RUNNING]: listening on port: ${port}`);
 });
